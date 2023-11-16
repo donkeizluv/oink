@@ -31,7 +31,7 @@ A CLI for managing NFT projects
 For now oink needs to be built from source.
 
 - install [rustup.rs](https://rustup.rs)
-- `git clone https://github.com/3based/oink.git`
+- `git clone https://github.com/donkeizluv/oink.git`
 - `cd oink`
 - `cargo install --path .`
 

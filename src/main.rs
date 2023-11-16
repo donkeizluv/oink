@@ -172,18 +172,15 @@ fn main() -> anyhow::Result<()> {
                                 output.join(format!("{}#{}.png", config.name, count + offset));
                             base.save(nft_image_path).expect("failed to create image");
 
-                            // let attributes_path = folder_name.join(format!(
-                            //     "{}#{}.json",
-                            //     config.name,
-                            //     count + offset
-                            // ));
+                            let attributes_path =
+                                output.join(format!("{}#{}.json", config.name, count + offset));
                             // let metadata_path = folder_name.join("metadata.json");
 
-                            // let attributes = serde_json::to_string_pretty(&trait_info)
-                            //     .expect("failed to create attributes");
+                            let attributes = serde_json::to_string_pretty(&trait_info)
+                                .expect("failed to create attributes");
 
-                            // fs::write(attributes_path, attributes)
-                            //     .expect("failed to create attributes");
+                            fs::write(attributes_path, attributes)
+                                .expect("failed to create attributes");
 
                             // let meta = metadata::build_with_attributes(
                             //     trait_info,
