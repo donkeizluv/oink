@@ -38,11 +38,7 @@ fn main() -> anyhow::Result<()> {
                 for (set_index, set) in sets.iter().enumerate() {
                     let mut layers = Layers::default();
 
-                    layers.load(
-                        config.mode,
-                        &config.layers,
-                        config.path.join(set.name.clone()),
-                    )?;
+                    layers.load(&config.layers, config.path.join(set.name.clone()))?;
 
                     let mut fail_count = 0;
 
@@ -84,7 +80,7 @@ fn main() -> anyhow::Result<()> {
             } else {
                 let mut layers = Layers::default();
 
-                layers.load(config.mode, &config.layers, config.path)?;
+                layers.load(&config.layers, config.path)?;
 
                 let mut fail_count = 0;
 

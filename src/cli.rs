@@ -1,14 +1,4 @@
-use std::fmt::Display;
-
-use clap::{ArgEnum, Parser};
-use serde::{Deserialize, Serialize};
-
-#[derive(Parser, Debug)]
-pub struct NewCommand {
-    /// The mode for processing attribute rarity
-    #[clap(short, long, arg_enum, default_value = "simple")]
-    pub mode: Mode,
-}
+use clap::Parser;
 
 #[derive(Parser, Debug)]
 pub struct ConfigArgs {
@@ -37,29 +27,5 @@ impl Default for Commands {
 impl Commands {
     pub fn new() -> Self {
         Commands::parse()
-    }
-}
-
-#[derive(Clone, Copy, Debug, ArgEnum, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Mode {
-    Simple,
-    Advanced,
-}
-
-impl Default for Mode {
-    fn default() -> Self {
-        Mode::Simple
-    }
-}
-
-impl Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use Mode::*;
-
-        match self {
-            Simple => write!(f, "simple"),
-            Advanced => write!(f, "advanced"),
-        }
     }
 }

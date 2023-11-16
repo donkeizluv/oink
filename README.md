@@ -7,8 +7,6 @@ A CLI for managing NFT projects
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Simple Mode](#simple-mode)
-  - [Advanced Mode](#advanced-mode)
 - [Config](#config)
   - [Example](#example)
   - [Types](#types)
@@ -21,7 +19,6 @@ A CLI for managing NFT projects
 - Sets (groups of the same layers with different image files)
 - Conditional Layer Rendering (based on sets or traits within a previous layer)
 - Starting count at 1 or 0
-- Simple or Advanced rarity configurations
 - Integrates with [nft maker](https://nft-maker.io)
   - generate metadata template
   - upload collections
@@ -56,36 +53,9 @@ SUBCOMMANDS:
     upload      Upload an NFT collection to nft-maker.io
 ```
 
-### Simple Mode
-
-In simple mode, you have some base folder for your images defaulted to `images/`. Then in there you have a folder for each layer who's names match the layers provided in the `oink.json` file.
-
-Then within the layer folders you need to have your trait files organized into **rarity folders**.
-
-```
-images/
-|__ambience/
-     |__common/
-     |    |__trait.png
-     |__uncommon/
-     |__rare/
-     |__mythical/
-     |__legendary/
-```
-
-These have their numeric weights defaulted like so:
-
-- common: 70
-- uncommon: 50
-- rare: 20
-- mythical: 10
-- legendary: 5
-
-### Advanced Mode
-
 This mode works much more like what people are used to in hashlips. In advanced mode, you have some base folder for your images defaulted to `images/`. Then in there you have a folder for each layer who's names match the layers provided in the `oink.json` file.
 
-Unlike simple mode, the trait files live in the layer folders and **NOT** within rarity folders. From there you must provide the rarity with a special suffix in the trait file names.
+the trait files live in the layer folders and **NOT** within rarity folders. From there you must provide the rarity with a special suffix in the trait file names.
 
 This is the pattern: `name#WEIGHT.png`
 
@@ -110,7 +80,7 @@ There needs to be a config file at the root of a project.
   "policy_id": "123",
   "name": "BasedBear",
   "display_name": "Based Bear",
-  "mode": "simple",
+  "mode": "advanced",
   "start_at_one": false,
   "amount": 10000,
   "tolerance": 50,
@@ -143,7 +113,7 @@ There needs to be a config file at the root of a project.
   "extra": {
     "twitter": "https://twitter.com/_3based",
     "website": "https://3based.com",
-    "copyright": "2022 3Based",
+    "copyright": "2022 3Based"
   },
   "nft_maker": {
     "network": "mainnet",
@@ -160,7 +130,7 @@ There needs to be a config file at the root of a project.
     policy_id?: string,
     name: string,
     display_name?: string,
-    mode: "simple" | "advanced",
+    mode: "advanced",
     start_at_one?: true,
     amount: integer,
     tolerance: integer,

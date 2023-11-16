@@ -7,8 +7,6 @@ use directories_next::ProjectDirs;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
-use crate::cli::Mode;
-
 #[derive(Deserialize, Serialize, Debug, Default)]
 pub struct AppConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -16,7 +14,6 @@ pub struct AppConfig {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
-    pub mode: Mode,
     #[serde(default)]
     pub start_at_one: bool,
     pub amount: usize,
@@ -25,8 +22,6 @@ pub struct AppConfig {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub sets: Option<Vec<SetConfig>>,
     pub layers: Vec<LayerConfig>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub nft_maker: Option<NftMakerLocalConfig>,
     pub extra: Option<Map<String, Value>>,
 }
 
@@ -53,89 +48,6 @@ pub struct LayerConfig {
 pub struct IfTrait {
     pub layer: String,
     pub traits: Vec<String>,
-}
-
-#[derive(Deserialize, Serialize, Debug, Default)]
-pub struct NftMakerLocalConfig {
-    pub network: NftMakerNetwork,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub apikey: String,
-    pub nft_project_id: NftProjectId,
-}
-
-#[derive(Debug)]
-pub enum NftProjectId {
-    Uid(String),
-    Id(i32),
-}
-
-impl Serialize for NftProjectId {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        match self {
-            Self::Id(id) => serializer.serialize_i32(*id),
-            Self::Uid(uid) => serializer.serialize_str(uid),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for NftProjectId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        use serde::de::Error;
-
-        let value = Value::deserialize(deserializer)?;
-
-        match value {
-            Value::String(uid) => Ok(Self::Uid(uid)),
-            Value::Number(n) => Ok(Self::Id(n.as_i64().unwrap() as i32)),
-            _ => Err(D::Error::custom(
-                "nft_project_id must be a string or number",
-            )),
-        }
-    }
-}
-
-impl Default for NftProjectId {
-    fn default() -> Self {
-        Self::Id(0)
-    }
-}
-
-impl std::fmt::Display for NftProjectId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Uid(uid) => write!(f, "{}", uid),
-            Self::Id(id) => write!(f, "{}", id),
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug, Copy, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum NftMakerNetwork {
-    Testnet,
-    Mainnet,
-}
-
-impl NftMakerNetwork {
-    pub fn is_testnet(&self) -> bool {
-        matches!(self, Self::Testnet)
-    }
-
-    pub fn is_mainnet(&self) -> bool {
-        matches!(self, Self::Mainnet)
-    }
-}
-
-impl Default for NftMakerNetwork {
-    fn default() -> Self {
-        Self::Testnet
-    }
 }
 
 impl AppConfig {
@@ -213,14 +125,6 @@ impl AppConfig {
             extra.insert("copyright".to_string(), Value::String(copyright));
         };
 
-        let items = vec![Mode::Simple, Mode::Advanced];
-        let selection = Select::with_theme(&ColorfulTheme::default())
-            .items(&items)
-            .default(0)
-            .interact_on_opt(&Term::stderr())?;
-
-        let mode = selection.map_or(Mode::Simple, |index| items[index]);
-
         let amount: usize = Input::new().with_prompt("enter amount").interact_text()?;
 
         let mut layers = Vec::new();
@@ -251,14 +155,12 @@ impl AppConfig {
             policy_id,
             name,
             display_name,
-            mode,
             start_at_one: false,
             amount,
             tolerance: 50,
             path: "images".into(),
             sets: None,
             layers,
-            nft_maker: None,
             extra: Some(extra),
         })
     }
