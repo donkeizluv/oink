@@ -144,10 +144,17 @@ impl Layers {
                     random.iter().enumerate().any(|(bucket, index)| {
                         let bucket = &self.data[bucket];
                         let nft_trait = &bucket[*index];
+                        // if filter only contains layer exclude that layer
+                        if if_trait.traits.is_empty() {
+                            return nft_trait.layer == if_trait.layer;
+                        }
+                        if if_trait.layer.is_empty() {
+                            return if_trait.traits.iter().any(|t| t == &nft_trait.name);
+                        }
 
-                        // if the layer name matches, check if the trait name matches
+                        // if filter contains both, both must be match
                         nft_trait.layer == if_trait.layer
-                            || if_trait.traits.iter().any(|t| t == &nft_trait.name)
+                            && if_trait.traits.iter().any(|t| t == &nft_trait.name)
                     })
                 }) {
                     random.push(trait_list.len() - 1);
