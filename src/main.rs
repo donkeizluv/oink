@@ -2,7 +2,6 @@ use std::{
     collections::HashSet,
     fs,
     path::Path,
-    process,
     sync::{Arc, Mutex},
 };
 
@@ -67,20 +66,19 @@ fn main() -> anyhow::Result<()> {
                     while count <= config.amount {
                         match a_all_dna.lock() {
                             Ok(mut all_dna_l) => {
-                                let (unique, dna) = layers.create_unique(&config.layers);
+                                let (def, dna) = layers.create_unique(&config.layers);
+
                                 if all_dna_l.insert(dna.clone()) {
-                                    uniques.insert((unique, dna));
+                                    uniques.insert((def, dna));
                                     count += 1;
                                     progress.inc(1);
                                 } else {
                                     fail_count += 1;
                                     if fail_count > config.tolerance {
-                                        println!(
+                                        panic!(
                                             "You need more features or traits to generate {}",
                                             config.amount
                                         );
-
-                                        process::exit(1);
                                     }
                                 }
                             }
@@ -113,8 +111,9 @@ fn main() -> anyhow::Result<()> {
             sets.into_iter()
                 .collect::<Vec<Set>>()
                 .par_iter()
-                .for_each(|set| {
-                    let (cfg_name, layers, set) = set;
+                .for_each(|set_data| {
+                    let (cfg_name, layers, set) = set_data;
+
                     let progress = gen_progresses.add(ProgressBar::new(set.len() as u64));
                     progress.set_style(multi_proc_sty.clone());
                     progress.set_message(format!("{} -> Generating NFTs", cfg_name));
@@ -122,13 +121,13 @@ fn main() -> anyhow::Result<()> {
                     set.into_iter()
                         .collect::<Vec<&(Vec<usize>, String)>>()
                         .par_iter()
-                        .for_each(|comb_def| {
-                            let (unique, dna) = comb_def;
+                        .for_each(|comb| {
+                            let (def, dna) = comb;
                             let mut base = RgbaImage::new(layers.width, layers.height);
                             let mut traits_map = Map::new();
                             let cfg_output = output.join(cfg_name);
 
-                            for (index, trait_list) in unique.iter().zip(&layers.trait_sets) {
+                            for (index, trait_list) in def.iter().zip(&layers.trait_sets) {
                                 let nft_trait = &trait_list[*index];
                                 traits_map.insert(
                                     nft_trait.layer.to_owned(),

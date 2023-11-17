@@ -174,7 +174,12 @@ impl Layers {
                 }
             }
         }
-        let mut sorted: Vec<Vec<u8>> = trait_names
+
+        (random, Layers::hash_dna(trait_names))
+    }
+
+    fn hash_dna(traits: HashSet<String>) -> String {
+        let mut sorted: Vec<Vec<u8>> = traits
             .into_iter()
             .map(|t| t.as_bytes().to_owned())
             .collect();
@@ -182,8 +187,7 @@ impl Layers {
 
         let mut hasher = Keccak256::new();
         hasher.update(sorted.into_iter().flatten().collect::<Vec<u8>>());
-        let dna = format!("{:x}", hasher.finalize());
 
-        (random, dna)
+        format!("{:x}", hasher.finalize())
     }
 }
