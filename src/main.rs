@@ -26,6 +26,7 @@ fn main() -> anyhow::Result<()> {
     match cmds {
         Commands::Clean => utils::clean(output)?,
         Commands::Gen(args) => {
+            println!("\n ------- Init Configs ------- \n");
             // Prep folders
             utils::clean(output)?;
             fs::create_dir(output)?;
@@ -101,6 +102,7 @@ fn main() -> anyhow::Result<()> {
             // conf_progress.clear()?;
 
             // Generate the images
+            println!("\n ------- Generating ------- \n");
             let gen_progresses = MultiProgress::new();
 
             let sets = Arc::try_unwrap(a_all_sets)
