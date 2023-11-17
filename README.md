@@ -16,8 +16,7 @@ A CLI for managing NFT projects
 - Generate unique NFTs from attribute files
 - Layer ordering defined in the config
 - Output rarity data
-- Sets (groups of the same layers with different image files)
-- Conditional Layer Rendering (based on sets or traits within a previous layer)
+- Conditional Layer Rendering (traits within a previous layer)
 - Starting count at 1 or 0
 - Integrates with [nft maker](https://nft-maker.io)
   - generate metadata template
@@ -81,25 +80,14 @@ There needs to be a config file at the root of a project.
   "name": "BasedBear",
   "display_name": "Based Bear",
   "mode": "advanced",
-  "start_at_one": false,
   "amount": 10000,
   "tolerance": 50,
   "path": "images",
-  "sets": [
-    {
-      "name": "Head",
-      "amount": 20
-    },
-    {
-      "name": "Mohawk",
-      "amount": 20
-    }
-  ],
+
   "layers": [
     { "name": "background" },
     {
       "name": "eyes",
-      "exclude_if_sets": ["Mohawk"],
       "exclude_if_traits": [
         { "layer": "background", "traits": ["clouds", "cardano"] }
       ]
@@ -131,15 +119,12 @@ There needs to be a config file at the root of a project.
     name: string,
     display_name?: string,
     mode: "advanced",
-    start_at_one?: true,
     amount: integer,
     tolerance: integer,
     path: string,
-    sets?: { name: string, amount: integer }[],
     layers: {
       name: string,
       none?: integer,
-      exclude_if_sets?: string[],
       exclude_if_traits?: {
         layer: string,
         traits: string[]
