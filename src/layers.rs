@@ -3,6 +3,7 @@ use std::{collections::HashSet, path::PathBuf};
 use anyhow::{anyhow, Context};
 use image::{DynamicImage, GenericImageView};
 use rand::Rng;
+use sha3::{Digest, Keccak256};
 
 use crate::config::LayerConfig;
 
@@ -128,7 +129,7 @@ impl Layers {
         Ok(())
     }
 
-    pub fn create_unique(&self, layers: &[LayerConfig]) -> (Vec<usize>, HashSet<String>) {
+    pub fn create_unique(&self, layers: &[LayerConfig]) -> (Vec<usize>, String) {
         let mut random = Vec::new();
         let mut rng = rand::thread_rng();
         let mut trait_names = HashSet::new();
@@ -168,12 +169,21 @@ impl Layers {
 
                 if n < 0.0 {
                     random.push(index);
-                    trait_names.insert(elem.name.clone());
+                    trait_names.insert(format!("{}-{}", layer_config.name, elem.name));
                     break;
                 }
             }
         }
+        let mut sorted: Vec<Vec<u8>> = trait_names
+            .into_iter()
+            .map(|t| t.as_bytes().to_owned())
+            .collect();
+        sorted.sort();
 
-        (random, trait_names)
+        let mut hasher = Keccak256::new();
+        hasher.update(sorted.into_iter().flatten().collect::<Vec<u8>>());
+        let dna = format!("{:x}", hasher.finalize());
+
+        (random, dna)
     }
 }

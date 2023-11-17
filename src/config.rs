@@ -56,7 +56,7 @@ impl AppConfig {
             let mut parsed: Self = serde_json::from_str(&contents)
                 .expect(&format!("unable to parse config file: {}", file_name));
 
-            parsed.config_name = file_name;
+            parsed.config_name = file_name.split(".").collect::<Vec<&str>>()[0].to_string();
             configs.push(parsed);
         }
 
