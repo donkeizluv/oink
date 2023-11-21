@@ -129,7 +129,7 @@ impl Layers {
         Ok(())
     }
 
-    pub fn create_unique(&self, layers: &[LayerConfig]) -> (Vec<usize>, String) {
+    pub fn create_unique(&self, layers: &[LayerConfig]) -> (Vec<usize>, HashSet<String>, String) {
         let mut random = Vec::new();
         let mut rng = rand::thread_rng();
         let mut trait_names = HashSet::new();
@@ -169,13 +169,22 @@ impl Layers {
 
                 if n < 0.0 {
                     random.push(index);
-                    trait_names.insert(format!("{}-{}", layer_config.name, elem.name));
+                    trait_names.insert((layer_config.name.clone(), elem.name.clone()));
                     break;
                 }
             }
         }
 
-        (random, Layers::hash_dna(trait_names))
+        (
+            random,
+            trait_names.iter().map(|(_, t)| t.clone()).collect(),
+            Layers::hash_dna(
+                trait_names
+                    .iter()
+                    .map(|(l, t)| format!("{}-{}", l, t))
+                    .collect(),
+            ),
+        )
     }
 
     fn hash_dna(traits: HashSet<String>) -> String {

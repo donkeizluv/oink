@@ -5,6 +5,10 @@ pub struct ConfigArgs {
     /// Path to the projects config file
     #[clap(short, long, default_value = "configs")]
     pub config_folder: String,
+
+    /// Path to blacklist config file
+    #[clap(short, long, default_value = "blacklist.json")]
+    pub bl_file: String,
 }
 
 /// CLI for generating jpegs

@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
             )?
             .progress_chars("##-");
             let conf_progress = MultiProgress::new();
-            let configs = AppConfig::load_configs(&args.config_folder)?;
+            let configs = AppConfig::load_configs(&args.config_folder, &args.bl_file)?;
 
             // for keeping track of uniqueness
             let a_all_dna: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
@@ -67,9 +67,9 @@ fn main() -> anyhow::Result<()> {
                     while count <= config.amount {
                         match a_all_dna.lock() {
                             Ok(mut all_dna_l) => {
-                                let (def, dna) = layers.create_unique(&config.layers);
+                                let (def, traits, dna) = layers.create_unique(&config.layers);
 
-                                if all_dna_l.insert(dna.clone()) {
+                                if !config.check_bl(&traits) && all_dna_l.insert(dna.clone()) {
                                     uniques.insert((def, dna));
                                     count += 1;
                                     progress.inc(1);
@@ -94,7 +94,7 @@ fn main() -> anyhow::Result<()> {
                     }
 
                     // create ouput folder
-                    fs::create_dir(output.join(config.config_name.to_string()))
+                    fs::create_dir(output.join(&config.config_name))
                         .expect("unable to create config output folder");
 
                     progress.finish_with_message(format!("{} -> Loaded", config.config_name));
@@ -120,7 +120,7 @@ fn main() -> anyhow::Result<()> {
                     progress.set_style(multi_proc_sty.clone());
                     progress.set_message(format!("{} -> Generating NFTs", cfg_name));
 
-                    set.into_iter()
+                    set.iter()
                         .collect::<Vec<&(Vec<usize>, String)>>()
                         .par_iter()
                         .for_each(|comb| {
