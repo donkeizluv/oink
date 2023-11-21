@@ -36,7 +36,8 @@ fn main() -> anyhow::Result<()> {
             )?
             .progress_chars("##-");
             let conf_progress = MultiProgress::new();
-            let configs = AppConfig::load_configs(&args.config_folder, &args.bl_file)?;
+            let configs =
+                AppConfig::load_configs(&args.config_folder, &args.bl_file, args.bl_case_sen)?;
 
             // for keeping track of uniqueness
             let a_all_dna: Arc<Mutex<HashSet<String>>> = Arc::new(Mutex::new(HashSet::new()));
@@ -69,7 +70,9 @@ fn main() -> anyhow::Result<()> {
                             Ok(mut all_dna_l) => {
                                 let (def, traits, dna) = layers.create_unique(&config.layers);
 
-                                if !config.check_bl(&traits) && all_dna_l.insert(dna.clone()) {
+                                if !config.is_bl(&traits, args.bl_case_sen)
+                                    && all_dna_l.insert(dna.clone())
+                                {
                                     uniques.insert((def, dna));
                                     count += 1;
                                     progress.inc(1);

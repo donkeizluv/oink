@@ -64,7 +64,11 @@ pub struct BlackListLine {
 }
 
 impl AppConfig {
-    pub fn load_configs(config_folders: &str, bl_filename: &str) -> Result<Vec<Self>> {
+    pub fn load_configs(
+        config_folders: &str,
+        bl_filename: &str,
+        bl_case_sen: bool,
+    ) -> Result<Vec<Self>> {
         let config_files = fs::read_dir(config_folders)?;
         let mut configs: Vec<Self> = vec![];
 
@@ -75,9 +79,13 @@ impl AppConfig {
 
                 let parsed_bl: BlackList = serde_json::from_str(&contents)
                     .unwrap_or_else(|_| panic!("unable to parse config file: {}", bl_filename));
-                println!("Found blacklist config of {} lines", parsed_bl.list.len());
+                println!(
+                    "Found blacklist config of {} lines | trait names is case sensitive: {}",
+                    parsed_bl.list.len(),
+                    bl_case_sen
+                );
 
-                Some(AppConfig::bl(parsed_bl)?)
+                Some(AppConfig::bl(parsed_bl, bl_case_sen)?)
             }
             Err(_) => {
                 println!("No blacklist config found");
@@ -103,12 +111,18 @@ impl AppConfig {
         Ok(configs)
     }
 
-    fn bl(bl_config: BlackList) -> anyhow::Result<HashMap<String, String>> {
+    fn bl(bl_config: BlackList, bl_case_sen: bool) -> anyhow::Result<HashMap<String, String>> {
         let mut bl = HashMap::new();
 
         for line in bl_config.list.iter() {
             for exclude in line.excludes.iter() {
-                if bl.insert(exclude.clone(), line.trait_name.clone()).is_some() {
+                let (new_exc, new_trait) = if bl_case_sen {
+                    (exclude.clone(), line.trait_name.clone())
+                } else {
+                    (exclude.to_lowercase(), line.trait_name.to_lowercase())
+                };
+
+                if bl.insert(new_exc, new_trait).is_some() {
                     panic!("blacklist already contained exclude of [{}], try merging it into excludes of trait_name \"{}\" ", exclude, exclude)
                 }
             }
@@ -117,11 +131,23 @@ impl AppConfig {
         Ok(bl)
     }
 
-    pub fn check_bl(&self, traits: &HashSet<String>) -> bool {
+    pub fn is_bl(&self, traits: &HashSet<String>, bl_case_sen: bool) -> bool {
+        let case_traits = traits
+            .iter()
+            .map(|t| {
+                if bl_case_sen {
+                    t.clone()
+                } else {
+                    t.to_lowercase()
+                }
+            })
+            .collect::<HashSet<String>>();
+
         self.bl.as_ref().is_some_and(|bl| {
-            traits
-                .iter()
-                .any(|t| bl.get_key_value(t).is_some_and(|(_, v)| traits.contains(v)))
+            case_traits.iter().any(|t| {
+                bl.get_key_value(t)
+                    .is_some_and(|(_, v)| case_traits.contains(v))
+            })
         })
     }
 }

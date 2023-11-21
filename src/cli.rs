@@ -9,6 +9,10 @@ pub struct ConfigArgs {
     /// Path to blacklist config file
     #[clap(short, long, default_value = "blacklist.json")]
     pub bl_file: String,
+
+    /// Blacklist name case sentivity
+    #[clap(long, default_value = "false")]
+    pub bl_case_sen: bool,
 }
 
 /// CLI for generating jpegs
