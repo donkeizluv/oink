@@ -10,7 +10,7 @@ pub struct ConfigArgs {
     #[clap(short, long, default_value = "blacklist.json")]
     pub bl_file: String,
 
-    /// Blacklist name case sentivity
+    /// Blacklist name case sentivity, default is false
     #[clap(long, default_value = "false")]
     pub bl_case_sen: bool,
 }
