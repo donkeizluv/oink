@@ -65,9 +65,9 @@ fn main() -> anyhow::Result<()> {
                     let mut uniques = HashSet::new();
                     let mut count = 1;
 
-                    while count <= config.amount {
-                        match a_all_dna.lock() {
-                            Ok(mut all_dna_l) => {
+                    match a_all_dna.lock() {
+                        Ok(mut all_dna_l) => {
+                            while count <= config.amount {
                                 let (def, traits, dna) = layers.create_unique(&config.layers);
 
                                 if !config.is_bl(&traits, args.bl_case_sen)
@@ -86,8 +86,8 @@ fn main() -> anyhow::Result<()> {
                                     }
                                 }
                             }
-                            Err(_) => panic!("unable to accquire lock"),
                         }
+                        Err(_) => panic!("unable to accquire lock"),
                     }
                     match a_all_sets.lock() {
                         Ok(mut sets_l) => {

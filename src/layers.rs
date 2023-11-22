@@ -63,7 +63,6 @@ impl Layers {
 
                 match &config.off_traits {
                     Some(off) if off.contains(&file_name) => {
-                        println!("skip {}", file_name);
                         continue;
                     }
                     _ => {}
