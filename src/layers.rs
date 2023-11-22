@@ -129,37 +129,16 @@ impl Layers {
         Ok(())
     }
 
-    pub fn create_unique(&self, layers: &[LayerConfig]) -> (Vec<usize>, HashSet<String>, String) {
+    pub fn create_unique(
+        &self,
+        layer_cfgs: &[LayerConfig],
+    ) -> (Vec<usize>, HashSet<String>, String) {
         let mut random = Vec::new();
         let mut rng = rand::thread_rng();
         let mut trait_names = HashSet::new();
 
-        for (trait_list, layer_config) in self.trait_sets.iter().zip(layers) {
-            if let Some(exclude_if_traits) = &layer_config.exclude_if_traits {
-                if exclude_if_traits.iter().any(|if_trait| {
-                    // search through previously applied layers for a match
-                    random.iter().enumerate().any(|(bucket, index)| {
-                        let bucket = &self.trait_sets[bucket];
-                        let nft_trait: &Trait = &bucket[*index];
-                        // if filter only contains layer exclude that layer
-                        if if_trait.traits.is_empty() {
-                            return nft_trait.layer == if_trait.layer;
-                        }
-                        if if_trait.layer.is_empty() {
-                            return if_trait.traits.iter().any(|t| t == &nft_trait.name);
-                        }
-
-                        // if filter contains both, both must be match
-                        nft_trait.layer == if_trait.layer
-                            && if_trait.traits.iter().any(|t| t == &nft_trait.name)
-                    })
-                }) {
-                    random.push(trait_list.len() - 1);
-
-                    continue;
-                };
-            }
-
+        // create rnd layers
+        for (trait_list, layer_config) in self.trait_sets.iter().zip(layer_cfgs) {
             let total_weight = trait_list.iter().fold(0, |acc, elem| acc + elem.weight);
             let random_num = rng.gen_range(0.0..1.0);
             let mut n = (random_num * total_weight as f64).floor();
@@ -173,6 +152,43 @@ impl Layers {
                     break;
                 }
             }
+        }
+
+        // apply excludes
+        for layer_idx in 0..random.len() {
+            let exuclude_trait = layer_cfgs[layer_idx]
+                .exclude_if_traits
+                .as_ref()
+                .is_some_and(|if_traits| {
+                    if_traits.iter().any(|if_trait| {
+                        // search through previously applied layers for a match
+                        random.iter().enumerate().any(|(i_layer_idx, trait_idx)| {
+                            let bucket = &self.trait_sets[i_layer_idx];
+                            let nft_trait: &Trait = &bucket[*trait_idx];
+
+                            // if filter only contains layer exclude that layer
+                            if if_trait.traits.is_empty() {
+                                return nft_trait.layer == if_trait.layer
+                                    && nft_trait.image.is_some();
+                            }
+                            if if_trait.layer.is_empty() {
+                                return if_trait
+                                    .traits
+                                    .iter()
+                                    .any(|t| t == &nft_trait.name && nft_trait.image.is_some());
+                            }
+
+                            // if filter contains both, both must be match
+                            nft_trait.layer == if_trait.layer
+                                && if_trait.traits.iter().any(|t| t == &nft_trait.name)
+                        })
+                    })
+                });
+
+            if exuclude_trait {
+                // use last item which is none
+                random[layer_idx] = self.trait_sets[layer_idx].len() - 1;
+            };
         }
 
         (
