@@ -1,11 +1,11 @@
-use std::{collections::HashSet, path::PathBuf};
+use std::{collections::HashSet, ffi::OsStr, path::PathBuf};
 
 use anyhow::{anyhow, Context};
 use image::{DynamicImage, GenericImageView};
 use rand::Rng;
 use sha3::{Digest, Keccak256};
 
-use crate::config::LayerConfig;
+use crate::config::{AppConfig, LayerConfig};
 
 #[derive(Debug, Clone)]
 pub struct Trait {
@@ -27,13 +27,14 @@ pub struct Layers {
 const DEFAULT_WEIGHT: u32 = 50;
 
 impl Layers {
-    pub fn load(&mut self, layers: &[LayerConfig], path: PathBuf) -> anyhow::Result<()> {
+    pub fn load(&mut self, config: &AppConfig) -> anyhow::Result<()> {
         let mut trait_sets = vec![];
         let mut trait_names = HashSet::new();
 
-        let layer_paths = layers
+        let layer_paths = config
+            .layers
             .iter()
-            .map(|layer| (layer, path.join(layer.name.clone())))
+            .map(|layer| (layer, config.path.join(layer.name.clone())))
             .filter(|(_, path)| path.is_dir());
 
         for (layer_config, layer_path) in layer_paths {
@@ -53,6 +54,21 @@ impl Layers {
                 .filter(|path| matches!(path.extension(), Some(ext) if ext == "png"));
 
             for trait_path in trait_paths {
+                let file_name = trait_path
+                    .file_stem()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+
+                match &config.off_traits {
+                    Some(off) if off.contains(&file_name) => {
+                        println!("skip {}", file_name);
+                        continue;
+                    }
+                    _ => {}
+                }
+
                 let image = image::open(&trait_path)
                     .with_context(|| format!("failed to load image {}", trait_path.display()))?;
 
@@ -62,13 +78,6 @@ impl Layers {
                     self.width = width;
                     self.height = height;
                 }
-
-                let file_name = trait_path
-                    .file_stem()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_string();
 
                 if file_name.contains('#') {
                     let parts: Vec<&str> = file_name.split('#').collect();

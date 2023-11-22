@@ -54,7 +54,7 @@ fn main() -> anyhow::Result<()> {
                     progress.set_message(format!("{} -> Loading", config.config_name));
 
                     let mut layers = Layers::default();
-                    match layers.load(&config.layers, config.path.clone()) {
+                    match layers.load(&config) {
                         Ok(_) => {}
                         Err(_) => {
                             panic!("unable to load layers")

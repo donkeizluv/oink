@@ -19,6 +19,8 @@ pub struct AppConfig {
     pub amount: usize,
     pub tolerance: usize,
     pub path: PathBuf,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub off_traits: Option<HashSet<String>>,
     pub layers: Vec<LayerConfig>,
     pub extra: Option<Map<String, Value>>,
 
