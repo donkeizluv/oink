@@ -99,6 +99,10 @@ fn main() -> anyhow::Result<()> {
                     // create ouput folder
                     fs::create_dir(output.join(&config.config_name))
                         .expect("unable to create config output folder");
+                    fs::create_dir(output.join(&config.config_name).join("image"))
+                      .expect("unable to create config image output folder");
+                    fs::create_dir(output.join(&config.config_name).join("json"))
+                      .expect("unable to create config json output folder");
 
                     progress.finish_with_message(format!("{} -> Loaded", config.config_name));
                 });
@@ -130,7 +134,8 @@ fn main() -> anyhow::Result<()> {
                             let (def, dna) = comb;
                             let mut base = RgbaImage::new(layers.width, layers.height);
                             let mut traits_map = Map::new();
-                            let cfg_output = output.join(cfg_name);
+                            let cfg_image_output = output.join(cfg_name).join("image");
+                            let cfg_json_output = output.join(cfg_name).join("json");
 
                             for (index, trait_list) in def.iter().zip(&layers.trait_sets) {
                                 let nft_trait = &trait_list[*index];
@@ -143,11 +148,11 @@ fn main() -> anyhow::Result<()> {
                                 }
                             }
 
-                            let nft_image_path = cfg_output.join(format!("{}.png", dna));
+                            let nft_image_path = cfg_image_output.join(format!("{}.png", dna));
                             base.save(nft_image_path).expect("failed to create image");
 
                             // Write attrs
-                            let attributes_path = cfg_output.join(format!("{}.json", dna));
+                            let attributes_path = cfg_json_output.join(format!("{}.json", dna));
                             let attributes = serde_json::to_string_pretty(&traits_map)
                                 .expect("failed to create attributes");
 
